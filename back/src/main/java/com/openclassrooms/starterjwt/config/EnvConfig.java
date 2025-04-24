@@ -10,7 +10,7 @@ public class EnvConfig {
     @Bean
     public Dotenv dotenv() {
         return Dotenv.configure()
-                .directory("/Users/dorianpernot/Desktop/Testez-une-application-full-stack/back") // Chemin modifié pour pointer vers le dossier back
+                .directory("/Users/dorianpernot/Desktop/Testez-une-application-full-stack/back")
                 .ignoreIfMissing()
                 .load();
     }

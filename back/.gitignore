@@ -32,3 +32,10 @@ build/
 **/.DS_Store
 .DS_Store
 *.DS_Store
+
+### Config files ###
+/src/main/java/com/openclassrooms/starterjwt/config/EnvConfig.java
+/src/main/java/com/openclassrooms/starterjwt/config/PropertyConfig.java
+
+### Environment variables ###
+.env
