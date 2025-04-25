@@ -23,7 +23,10 @@ export class MeComponent implements OnInit {
   public ngOnInit(): void {
     this.userService
       .getById(this.sessionService.sessionInformation!.id.toString())
-      .subscribe((user: User) => this.user = user);
+      .subscribe({
+        next: (user: User) => this.user = user,
+        error: (_) => this.matSnackBar.open('Error loading user', 'Close', { duration: 3000 })
+      });
   }
 
   public back(): void {
@@ -31,13 +34,17 @@ export class MeComponent implements OnInit {
   }
 
   public delete(): void {
-    this.userService
-      .delete(this.sessionService.sessionInformation!.id.toString())
-      .subscribe((_) => {
-        this.matSnackBar.open("Your account has been deleted !", 'Close', { duration: 3000 });
-        this.sessionService.logOut();
-        this.router.navigate(['/']);
-      })
+    if (window.confirm('Are you sure you want to delete your account?')) {
+      this.userService
+        .delete(this.sessionService.sessionInformation!.id.toString())
+        .subscribe({
+          next: (_) => {
+            this.matSnackBar.open("Your account has been deleted !", 'Close', { duration: 3000 });
+            this.sessionService.logOut();
+            this.router.navigate(['/']);
+          },
+          error: (_) => this.matSnackBar.open('Error deleting account', 'Close', { duration: 3000 })
+        });
+    }
   }
-
 }
