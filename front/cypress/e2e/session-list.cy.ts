@@ -141,4 +141,21 @@ describe('Session List spec', () => {
     // Vérifie que le bouton d'édition n'est pas présent
     cy.contains('button', 'Edit').should('not.exist');
   });
+
+  it('Should handle empty sessions list', () => {
+    // Intercepte la requête API pour les sessions avec une liste vide
+    cy.intercept('GET', '/api/session', {
+      body: [],
+    }).as('getEmptySessions');
+
+    // Recharge la page
+    cy.reload();
+    cy.wait('@getEmptySessions');
+
+    // Vérifie qu'il n'y a pas de sessions affichées
+    cy.get('mat-card.item').should('not.exist');
+
+    // Vérifie que le titre est toujours affiché
+    cy.contains('mat-card-title', 'Rentals available').should('be.visible');
+  });
 });
