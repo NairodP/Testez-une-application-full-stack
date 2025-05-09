@@ -6,6 +6,7 @@ import com.openclassrooms.starterjwt.mapper.SessionMapper;
 import com.openclassrooms.starterjwt.models.Session;
 import com.openclassrooms.starterjwt.models.Teacher;
 import com.openclassrooms.starterjwt.models.User;
+import com.openclassrooms.starterjwt.security.services.UserDetailsImpl;
 import com.openclassrooms.starterjwt.services.SessionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
@@ -107,6 +111,18 @@ public class SessionControllerTest {
         // Création des listes pour findAll
         testSessions = Arrays.asList(testSession, session2);
         testSessionDtos = Arrays.asList(testSessionDto, sessionDto2);
+        
+        // Configuration de l'authentification
+        UserDetailsImpl userDetails = UserDetailsImpl.builder()
+                .id(1L)
+                .username("user@test.com")
+                .firstName("User")
+                .lastName("Test")
+                .password("encodedPassword")
+                .build();
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     @Test

@@ -143,17 +143,31 @@ describe('MeComponent', () => {
     jest.restoreAllMocks();
   });
 
-  it('should handle error when delete fails', () => {
+  it('should handle error when deleting account fails', () => {
     // Mock window.confirm to return true
     jest.spyOn(window, 'confirm').mockReturnValue(true);
-    mockUserService.delete.mockReturnValue(throwError(() => new Error('Failed to delete')));
+    mockUserService.delete.mockReturnValue(throwError(() => new Error('Failed to delete user')));
 
     component.delete();
 
     expect(mockUserService.delete).toHaveBeenCalledWith('1');
     expect(mockMatSnackBar.open).toHaveBeenCalledWith('Error deleting account', 'Close', { duration: 3000 });
+    expect(sessionService.logOut).not.toHaveBeenCalled();
+    expect(mockRouter.navigate).not.toHaveBeenCalled();
 
     // Restore window.confirm
     jest.restoreAllMocks();
+  });
+
+  it('should navigate back when back function is called', () => {
+    // Mock window.history.back
+    const historySpy = jest.spyOn(window.history, 'back').mockImplementation(() => {});
+
+    component.back();
+
+    expect(historySpy).toHaveBeenCalled();
+
+    // Restore window.history.back
+    historySpy.mockRestore();
   });
 });

@@ -11,6 +11,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -83,6 +86,7 @@ public class TeacherControllerTest {
     }
 
     @Test
+    @WithMockUser
     public void testFindByIdSuccess() throws Exception {
         // Arrange
         when(teacherService.findById(1L)).thenReturn(testTeacher);
@@ -90,6 +94,7 @@ public class TeacherControllerTest {
 
         // Act & Assert
         mockMvc.perform(get("/api/teacher/1")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
@@ -101,12 +106,14 @@ public class TeacherControllerTest {
     }
 
     @Test
+    @WithMockUser
     public void testFindByIdNotFound() throws Exception {
         // Arrange
         when(teacherService.findById(999L)).thenReturn(null);
 
         // Act & Assert
         mockMvc.perform(get("/api/teacher/999")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
@@ -115,9 +122,11 @@ public class TeacherControllerTest {
     }
 
     @Test
+    @WithMockUser
     public void testFindByIdBadRequest() throws Exception {
         // Act & Assert
         mockMvc.perform(get("/api/teacher/invalid")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
 
@@ -126,6 +135,7 @@ public class TeacherControllerTest {
     }
 
     @Test
+    @WithMockUser
     public void testFindAll() throws Exception {
         // Arrange
         when(teacherService.findAll()).thenReturn(testTeachers);
@@ -133,6 +143,7 @@ public class TeacherControllerTest {
 
         // Act & Assert
         mockMvc.perform(get("/api/teacher")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))

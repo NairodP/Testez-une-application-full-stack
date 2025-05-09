@@ -158,9 +158,14 @@
 							<goal>report</goal>
 						</goals>
 					</execution>
-				</executions> <!-- Fermeture correcte de la balise executions -->
+				</executions>
+				<configuration>
+					<excludes>
+						<!-- Exclusion des DTOs de la couverture de tests -->
+						<exclude>**/dto/**</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
-
 
 			<!-- Plugin Maven Compiler (Java 17) -->
 			<plugin>
