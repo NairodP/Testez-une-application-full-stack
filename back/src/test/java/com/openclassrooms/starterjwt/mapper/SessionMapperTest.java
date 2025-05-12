@@ -16,7 +16,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(properties = "spring.config.name=application-test")
+@SpringBootTest(properties = {"spring.profiles.active=test"})
 public class SessionMapperTest {
 
     @Autowired
