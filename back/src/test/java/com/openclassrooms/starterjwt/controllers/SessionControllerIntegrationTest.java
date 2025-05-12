@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.hamcrest.Matchers.is;
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.config.name=application-test")
 @AutoConfigureMockMvc
 @Transactional
 public class SessionControllerIntegrationTest {
