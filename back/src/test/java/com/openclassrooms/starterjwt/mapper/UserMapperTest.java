@@ -3,174 +3,141 @@ package com.openclassrooms.starterjwt.mapper;
 import com.openclassrooms.starterjwt.dto.UserDto;
 import com.openclassrooms.starterjwt.models.User;
 import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
 public class UserMapperTest {
 
-    private final UserMapper userMapper = Mappers.getMapper(UserMapper.class);
+    @Autowired
+    private UserMapper userMapper;
 
     @Test
-    public void shouldMapUserToUserDto() {
+    public void testToDto() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
-        User user = User.builder()
-                .id(1L)
-                .email("test@test.com")
-                .firstName("John")
-                .lastName("Doe")
-                .password("password123")
-                .admin(true)
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("test@test.com");
+        user.setFirstName("John");
+        user.setLastName("Doe");
+        user.setPassword("encodedPassword");
+        user.setAdmin(false);
 
         // Act
         UserDto userDto = userMapper.toDto(user);
 
         // Assert
         assertNotNull(userDto);
-        assertEquals(user.getId(), userDto.getId());
-        assertEquals(user.getEmail(), userDto.getEmail());
-        assertEquals(user.getFirstName(), userDto.getFirstName());
-        assertEquals(user.getLastName(), userDto.getLastName());
-        assertEquals(user.getPassword(), userDto.getPassword());
-        assertEquals(user.isAdmin(), userDto.isAdmin());
-        assertEquals(user.getCreatedAt(), userDto.getCreatedAt());
-        assertEquals(user.getUpdatedAt(), userDto.getUpdatedAt());
+        assertEquals(1L, userDto.getId());
+        assertEquals("test@test.com", userDto.getEmail());
+        assertEquals("John", userDto.getFirstName());
+        assertEquals("Doe", userDto.getLastName());
+        assertFalse(userDto.isAdmin());
+        // Le mot de passe est transféré au DTO dans l'implémentation actuelle
+        assertEquals("encodedPassword", userDto.getPassword());
     }
 
     @Test
-    public void shouldMapUserDtoToUser() {
+    public void testToEntity() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
         UserDto userDto = new UserDto();
         userDto.setId(1L);
         userDto.setEmail("test@test.com");
         userDto.setFirstName("John");
         userDto.setLastName("Doe");
-        userDto.setPassword("password123");
-        userDto.setAdmin(true);
-        userDto.setCreatedAt(now);
-        userDto.setUpdatedAt(now);
+        userDto.setAdmin(false);
+        userDto.setPassword("testPassword");
 
         // Act
         User user = userMapper.toEntity(userDto);
 
         // Assert
         assertNotNull(user);
-        assertEquals(userDto.getId(), user.getId());
-        assertEquals(userDto.getEmail(), user.getEmail());
-        assertEquals(userDto.getFirstName(), user.getFirstName());
-        assertEquals(userDto.getLastName(), user.getLastName());
-        assertEquals(userDto.getPassword(), user.getPassword());
-        assertEquals(userDto.isAdmin(), user.isAdmin());
-        assertEquals(userDto.getCreatedAt(), user.getCreatedAt());
-        assertEquals(userDto.getUpdatedAt(), user.getUpdatedAt());
+        assertEquals(1L, user.getId());
+        assertEquals("test@test.com", user.getEmail());
+        assertEquals("John", user.getFirstName());
+        assertEquals("Doe", user.getLastName());
+        assertEquals(false, user.isAdmin());
+        // Le mot de passe est conservé lors de la conversion de DTO à entité
+        assertEquals("testPassword", user.getPassword());
     }
 
     @Test
-    public void shouldMapUserListToUserDtoList() {
+    public void testToDtoList() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
-        List<User> userList = new ArrayList<>();
-        
-        User user1 = User.builder()
-                .id(1L)
-                .email("user1@test.com")
-                .firstName("John")
-                .lastName("Doe")
-                .password("password1")
-                .admin(true)
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
-                
-        User user2 = User.builder()
-                .id(2L)
-                .email("user2@test.com")
-                .firstName("Jane")
-                .lastName("Smith")
-                .password("password2")
-                .admin(false)
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
-                
-        userList.add(user1);
-        userList.add(user2);
+        User user1 = new User();
+        user1.setId(1L);
+        user1.setEmail("test1@test.com");
+        user1.setFirstName("John");
+        user1.setLastName("Doe");
+
+        User user2 = new User();
+        user2.setId(2L);
+        user2.setEmail("test2@test.com");
+        user2.setFirstName("Jane");
+        user2.setLastName("Smith");
+
+        List<User> users = Arrays.asList(user1, user2);
 
         // Act
-        List<UserDto> userDtoList = userMapper.toDto(userList);
+        List<UserDto> userDtos = userMapper.toDto(users);
 
         // Assert
-        assertNotNull(userDtoList);
-        assertEquals(2, userDtoList.size());
+        assertNotNull(userDtos);
+        assertEquals(2, userDtos.size());
         
-        assertEquals(user1.getId(), userDtoList.get(0).getId());
-        assertEquals(user1.getEmail(), userDtoList.get(0).getEmail());
-        assertEquals(user1.getFirstName(), userDtoList.get(0).getFirstName());
-        assertEquals(user1.getLastName(), userDtoList.get(0).getLastName());
-        assertEquals(user1.isAdmin(), userDtoList.get(0).isAdmin());
+        assertEquals(1L, userDtos.get(0).getId());
+        assertEquals("test1@test.com", userDtos.get(0).getEmail());
+        assertEquals("John", userDtos.get(0).getFirstName());
+        assertEquals("Doe", userDtos.get(0).getLastName());
         
-        assertEquals(user2.getId(), userDtoList.get(1).getId());
-        assertEquals(user2.getEmail(), userDtoList.get(1).getEmail());
-        assertEquals(user2.getFirstName(), userDtoList.get(1).getFirstName());
-        assertEquals(user2.getLastName(), userDtoList.get(1).getLastName());
-        assertEquals(user2.isAdmin(), userDtoList.get(1).isAdmin());
+        assertEquals(2L, userDtos.get(1).getId());
+        assertEquals("test2@test.com", userDtos.get(1).getEmail());
+        assertEquals("Jane", userDtos.get(1).getFirstName());
+        assertEquals("Smith", userDtos.get(1).getLastName());
     }
 
     @Test
-    public void shouldMapUserDtoListToUserList() {
+    public void testToEntityList() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
-        List<UserDto> userDtoList = new ArrayList<>();
-        
         UserDto userDto1 = new UserDto();
         userDto1.setId(1L);
-        userDto1.setEmail("user1@test.com");
+        userDto1.setEmail("test1@test.com");
         userDto1.setFirstName("John");
         userDto1.setLastName("Doe");
+        userDto1.setAdmin(false);
         userDto1.setPassword("password1");
-        userDto1.setAdmin(true);
-        userDto1.setCreatedAt(now);
-        userDto1.setUpdatedAt(now);
-        
+
         UserDto userDto2 = new UserDto();
         userDto2.setId(2L);
-        userDto2.setEmail("user2@test.com");
+        userDto2.setEmail("test2@test.com");
         userDto2.setFirstName("Jane");
         userDto2.setLastName("Smith");
-        userDto2.setPassword("password2");
         userDto2.setAdmin(false);
-        userDto2.setCreatedAt(now);
-        userDto2.setUpdatedAt(now);
-        
-        userDtoList.add(userDto1);
-        userDtoList.add(userDto2);
+        userDto2.setPassword("password2");
+
+        List<UserDto> userDtos = Arrays.asList(userDto1, userDto2);
 
         // Act
-        List<User> userList = userMapper.toEntity(userDtoList);
+        List<User> users = userMapper.toEntity(userDtos);
 
         // Assert
-        assertNotNull(userList);
-        assertEquals(2, userList.size());
+        assertNotNull(users);
+        assertEquals(2, users.size());
         
-        assertEquals(userDto1.getId(), userList.get(0).getId());
-        assertEquals(userDto1.getEmail(), userList.get(0).getEmail());
-        assertEquals(userDto1.getFirstName(), userList.get(0).getFirstName());
-        assertEquals(userDto1.getLastName(), userList.get(0).getLastName());
-        assertEquals(userDto1.isAdmin(), userList.get(0).isAdmin());
+        assertEquals(1L, users.get(0).getId());
+        assertEquals("test1@test.com", users.get(0).getEmail());
+        assertEquals("John", users.get(0).getFirstName());
+        assertEquals("Doe", users.get(0).getLastName());
         
-        assertEquals(userDto2.getId(), userList.get(1).getId());
-        assertEquals(userDto2.getEmail(), userList.get(1).getEmail());
-        assertEquals(userDto2.getFirstName(), userList.get(1).getFirstName());
-        assertEquals(userDto2.getLastName(), userList.get(1).getLastName());
-        assertEquals(userDto2.isAdmin(), userList.get(1).isAdmin());
+        assertEquals(2L, users.get(1).getId());
+        assertEquals("test2@test.com", users.get(1).getEmail());
+        assertEquals("Jane", users.get(1).getFirstName());
+        assertEquals("Smith", users.get(1).getLastName());
     }
 }

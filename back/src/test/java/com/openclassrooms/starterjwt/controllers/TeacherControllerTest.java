@@ -6,155 +6,136 @@ import com.openclassrooms.starterjwt.models.Teacher;
 import com.openclassrooms.starterjwt.services.TeacherService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 public class TeacherControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @InjectMocks
+    private TeacherController teacherController;
 
-    @MockBean
+    @Mock
     private TeacherService teacherService;
 
-    @MockBean
+    @Mock
     private TeacherMapper teacherMapper;
 
-    private Teacher testTeacher;
-    private TeacherDto testTeacherDto;
-    private List<Teacher> testTeachers;
-    private List<TeacherDto> testTeacherDtos;
+    private Teacher teacher1;
+    private Teacher teacher2;
+    private TeacherDto teacherDto1;
+    private TeacherDto teacherDto2;
+    private List<Teacher> teacherList;
+    private List<TeacherDto> teacherDtoList;
 
     @BeforeEach
     public void setup() {
-        LocalDateTime now = LocalDateTime.now();
-        
-        // Configuration de l'enseignant de test
-        testTeacher = new Teacher();
-        testTeacher.setId(1L);
-        testTeacher.setFirstName("John");
-        testTeacher.setLastName("Doe");
-        testTeacher.setCreatedAt(now);
-        testTeacher.setUpdatedAt(now);
+        // Configuration des enseignants de test
+        teacher1 = new Teacher();
+        teacher1.setId(1L);
+        teacher1.setFirstName("John");
+        teacher1.setLastName("Doe");
 
-        // Configuration du DTO
-        testTeacherDto = new TeacherDto();
-        testTeacherDto.setId(1L);
-        testTeacherDto.setFirstName("John");
-        testTeacherDto.setLastName("Doe");
-        testTeacherDto.setCreatedAt(now);
-        testTeacherDto.setUpdatedAt(now);
-
-        // Création d'un autre enseignant pour la liste
-        Teacher teacher2 = new Teacher();
+        teacher2 = new Teacher();
         teacher2.setId(2L);
         teacher2.setFirstName("Jane");
         teacher2.setLastName("Smith");
-        teacher2.setCreatedAt(now);
-        teacher2.setUpdatedAt(now);
 
-        TeacherDto teacherDto2 = new TeacherDto();
+        teacherList = Arrays.asList(teacher1, teacher2);
+
+        // Configuration des DTOs d'enseignant
+        teacherDto1 = new TeacherDto();
+        teacherDto1.setId(1L);
+        teacherDto1.setFirstName("John");
+        teacherDto1.setLastName("Doe");
+
+        teacherDto2 = new TeacherDto();
         teacherDto2.setId(2L);
         teacherDto2.setFirstName("Jane");
         teacherDto2.setLastName("Smith");
-        teacherDto2.setCreatedAt(now);
-        teacherDto2.setUpdatedAt(now);
 
-        // Création des listes pour findAll
-        testTeachers = Arrays.asList(testTeacher, teacher2);
-        testTeacherDtos = Arrays.asList(testTeacherDto, teacherDto2);
+        teacherDtoList = Arrays.asList(teacherDto1, teacherDto2);
     }
 
     @Test
-    @WithMockUser
-    public void testFindByIdSuccess() throws Exception {
+    public void testFindByIdReturnsTeacher() {
         // Arrange
-        when(teacherService.findById(1L)).thenReturn(testTeacher);
-        when(teacherMapper.toDto(testTeacher)).thenReturn(testTeacherDto);
+        when(teacherService.findById(1L)).thenReturn(teacher1);
+        when(teacherMapper.toDto(teacher1)).thenReturn(teacherDto1);
 
-        // Act & Assert
-        mockMvc.perform(get("/api/teacher/1")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.firstName", is("John")))
-                .andExpect(jsonPath("$.lastName", is("Doe")));
+        // Act
+        ResponseEntity<?> response = teacherController.findById("1");
 
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(teacherDto1, response.getBody());
         verify(teacherService).findById(1L);
-        verify(teacherMapper).toDto(testTeacher);
+        verify(teacherMapper).toDto(teacher1);
     }
 
     @Test
-    @WithMockUser
-    public void testFindByIdNotFound() throws Exception {
+    public void testFindByIdReturnsNotFoundWhenTeacherNotFound() {
         // Arrange
         when(teacherService.findById(999L)).thenReturn(null);
 
-        // Act & Assert
-        mockMvc.perform(get("/api/teacher/999")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+        // Act
+        ResponseEntity<?> response = teacherController.findById("999");
 
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         verify(teacherService).findById(999L);
         verify(teacherMapper, never()).toDto(any(Teacher.class));
     }
 
     @Test
-    @WithMockUser
-    public void testFindByIdBadRequest() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/api/teacher/invalid")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+    public void testFindByIdReturnsBadRequestWithInvalidId() {
+        // Act
+        ResponseEntity<?> response = teacherController.findById("invalid");
 
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         verify(teacherService, never()).findById(anyLong());
-        verify(teacherMapper, never()).toDto(any(Teacher.class));
     }
 
     @Test
-    @WithMockUser
-    public void testFindAll() throws Exception {
+    public void testFindAllReturnsAllTeachers() {
         // Arrange
-        when(teacherService.findAll()).thenReturn(testTeachers);
-        when(teacherMapper.toDto(testTeachers)).thenReturn(testTeacherDtos);
+        when(teacherService.findAll()).thenReturn(teacherList);
+        when(teacherMapper.toDto(teacherList)).thenReturn(teacherDtoList);
 
-        // Act & Assert
-        mockMvc.perform(get("/api/teacher")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].id", is(1)))
-                .andExpect(jsonPath("$[0].firstName", is("John")))
-                .andExpect(jsonPath("$[0].lastName", is("Doe")))
-                .andExpect(jsonPath("$[1].id", is(2)))
-                .andExpect(jsonPath("$[1].firstName", is("Jane")))
-                .andExpect(jsonPath("$[1].lastName", is("Smith")));
+        // Act
+        ResponseEntity<?> response = teacherController.findAll();
 
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(teacherDtoList, response.getBody());
         verify(teacherService).findAll();
-        verify(teacherMapper).toDto(testTeachers);
+        verify(teacherMapper).toDto(teacherList);
+    }
+
+    @Test
+    public void testFindAllReturnsEmptyListWhenNoTeachers() {
+        // Arrange
+        when(teacherService.findAll()).thenReturn(List.of());
+        when(teacherMapper.toDto(List.of())).thenReturn(List.of());
+
+        // Act
+        ResponseEntity<?> response = teacherController.findAll();
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(List.of(), response.getBody());
+        verify(teacherService).findAll();
+        verify(teacherMapper).toDto(List.of());
     }
 }

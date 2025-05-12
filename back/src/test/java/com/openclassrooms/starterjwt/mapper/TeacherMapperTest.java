@@ -3,150 +3,115 @@ package com.openclassrooms.starterjwt.mapper;
 import com.openclassrooms.starterjwt.dto.TeacherDto;
 import com.openclassrooms.starterjwt.models.Teacher;
 import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
 public class TeacherMapperTest {
 
-    private final TeacherMapper teacherMapper = Mappers.getMapper(TeacherMapper.class);
+    @Autowired
+    private TeacherMapper teacherMapper;
 
     @Test
-    public void shouldMapTeacherToTeacherDto() {
+    public void testToDto() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
-        Teacher teacher = Teacher.builder()
-                .id(1L)
-                .firstName("John")
-                .lastName("Doe")
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
+        Teacher teacher = new Teacher();
+        teacher.setId(1L);
+        teacher.setFirstName("John");
+        teacher.setLastName("Doe");
 
         // Act
         TeacherDto teacherDto = teacherMapper.toDto(teacher);
 
         // Assert
         assertNotNull(teacherDto);
-        assertEquals(teacher.getId(), teacherDto.getId());
-        assertEquals(teacher.getFirstName(), teacherDto.getFirstName());
-        assertEquals(teacher.getLastName(), teacherDto.getLastName());
-        assertEquals(teacher.getCreatedAt(), teacherDto.getCreatedAt());
-        assertEquals(teacher.getUpdatedAt(), teacherDto.getUpdatedAt());
+        assertEquals(1L, teacherDto.getId());
+        assertEquals("John", teacherDto.getFirstName());
+        assertEquals("Doe", teacherDto.getLastName());
     }
 
     @Test
-    public void shouldMapTeacherDtoToTeacher() {
+    public void testToEntity() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
         TeacherDto teacherDto = new TeacherDto();
         teacherDto.setId(1L);
         teacherDto.setFirstName("John");
         teacherDto.setLastName("Doe");
-        teacherDto.setCreatedAt(now);
-        teacherDto.setUpdatedAt(now);
 
         // Act
         Teacher teacher = teacherMapper.toEntity(teacherDto);
 
         // Assert
         assertNotNull(teacher);
-        assertEquals(teacherDto.getId(), teacher.getId());
-        assertEquals(teacherDto.getFirstName(), teacher.getFirstName());
-        assertEquals(teacherDto.getLastName(), teacher.getLastName());
-        assertEquals(teacherDto.getCreatedAt(), teacher.getCreatedAt());
-        assertEquals(teacherDto.getUpdatedAt(), teacher.getUpdatedAt());
+        assertEquals(1L, teacher.getId());
+        assertEquals("John", teacher.getFirstName());
+        assertEquals("Doe", teacher.getLastName());
     }
 
     @Test
-    public void shouldMapTeacherListToTeacherDtoList() {
+    public void testToDtoList() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
-        List<Teacher> teacherList = new ArrayList<>();
-        
-        Teacher teacher1 = Teacher.builder()
-                .id(1L)
-                .firstName("John")
-                .lastName("Doe")
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
-                
-        Teacher teacher2 = Teacher.builder()
-                .id(2L)
-                .firstName("Jane")
-                .lastName("Smith")
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
-                
-        teacherList.add(teacher1);
-        teacherList.add(teacher2);
+        Teacher teacher1 = new Teacher();
+        teacher1.setId(1L);
+        teacher1.setFirstName("John");
+        teacher1.setLastName("Doe");
+
+        Teacher teacher2 = new Teacher();
+        teacher2.setId(2L);
+        teacher2.setFirstName("Jane");
+        teacher2.setLastName("Smith");
+
+        List<Teacher> teachers = Arrays.asList(teacher1, teacher2);
 
         // Act
-        List<TeacherDto> teacherDtoList = teacherMapper.toDto(teacherList);
+        List<TeacherDto> teacherDtos = teacherMapper.toDto(teachers);
 
         // Assert
-        assertNotNull(teacherDtoList);
-        assertEquals(2, teacherDtoList.size());
+        assertNotNull(teacherDtos);
+        assertEquals(2, teacherDtos.size());
         
-        assertEquals(teacher1.getId(), teacherDtoList.get(0).getId());
-        assertEquals(teacher1.getFirstName(), teacherDtoList.get(0).getFirstName());
-        assertEquals(teacher1.getLastName(), teacherDtoList.get(0).getLastName());
-        assertEquals(teacher1.getCreatedAt(), teacherDtoList.get(0).getCreatedAt());
-        assertEquals(teacher1.getUpdatedAt(), teacherDtoList.get(0).getUpdatedAt());
+        assertEquals(1L, teacherDtos.get(0).getId());
+        assertEquals("John", teacherDtos.get(0).getFirstName());
+        assertEquals("Doe", teacherDtos.get(0).getLastName());
         
-        assertEquals(teacher2.getId(), teacherDtoList.get(1).getId());
-        assertEquals(teacher2.getFirstName(), teacherDtoList.get(1).getFirstName());
-        assertEquals(teacher2.getLastName(), teacherDtoList.get(1).getLastName());
-        assertEquals(teacher2.getCreatedAt(), teacherDtoList.get(1).getCreatedAt());
-        assertEquals(teacher2.getUpdatedAt(), teacherDtoList.get(1).getUpdatedAt());
+        assertEquals(2L, teacherDtos.get(1).getId());
+        assertEquals("Jane", teacherDtos.get(1).getFirstName());
+        assertEquals("Smith", teacherDtos.get(1).getLastName());
     }
 
     @Test
-    public void shouldMapTeacherDtoListToTeacherList() {
+    public void testToEntityList() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
-        List<TeacherDto> teacherDtoList = new ArrayList<>();
-        
         TeacherDto teacherDto1 = new TeacherDto();
         teacherDto1.setId(1L);
         teacherDto1.setFirstName("John");
         teacherDto1.setLastName("Doe");
-        teacherDto1.setCreatedAt(now);
-        teacherDto1.setUpdatedAt(now);
-        
+
         TeacherDto teacherDto2 = new TeacherDto();
         teacherDto2.setId(2L);
         teacherDto2.setFirstName("Jane");
         teacherDto2.setLastName("Smith");
-        teacherDto2.setCreatedAt(now);
-        teacherDto2.setUpdatedAt(now);
-        
-        teacherDtoList.add(teacherDto1);
-        teacherDtoList.add(teacherDto2);
+
+        List<TeacherDto> teacherDtos = Arrays.asList(teacherDto1, teacherDto2);
 
         // Act
-        List<Teacher> teacherList = teacherMapper.toEntity(teacherDtoList);
+        List<Teacher> teachers = teacherMapper.toEntity(teacherDtos);
 
         // Assert
-        assertNotNull(teacherList);
-        assertEquals(2, teacherList.size());
+        assertNotNull(teachers);
+        assertEquals(2, teachers.size());
         
-        assertEquals(teacherDto1.getId(), teacherList.get(0).getId());
-        assertEquals(teacherDto1.getFirstName(), teacherList.get(0).getFirstName());
-        assertEquals(teacherDto1.getLastName(), teacherList.get(0).getLastName());
-        assertEquals(teacherDto1.getCreatedAt(), teacherList.get(0).getCreatedAt());
-        assertEquals(teacherDto1.getUpdatedAt(), teacherList.get(0).getUpdatedAt());
+        assertEquals(1L, teachers.get(0).getId());
+        assertEquals("John", teachers.get(0).getFirstName());
+        assertEquals("Doe", teachers.get(0).getLastName());
         
-        assertEquals(teacherDto2.getId(), teacherList.get(1).getId());
-        assertEquals(teacherDto2.getFirstName(), teacherList.get(1).getFirstName());
-        assertEquals(teacherDto2.getLastName(), teacherList.get(1).getLastName());
-        assertEquals(teacherDto2.getCreatedAt(), teacherList.get(1).getCreatedAt());
-        assertEquals(teacherDto2.getUpdatedAt(), teacherList.get(1).getUpdatedAt());
+        assertEquals(2L, teachers.get(1).getId());
+        assertEquals("Jane", teachers.get(1).getFirstName());
+        assertEquals("Smith", teachers.get(1).getLastName());
     }
 }

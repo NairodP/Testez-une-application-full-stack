@@ -9,13 +9,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class TeacherServiceTest {
@@ -30,63 +29,81 @@ public class TeacherServiceTest {
     private Teacher teacher2;
 
     @BeforeEach
-    public void setUp() {
+    public void setup() {
+        // Configuration des enseignants de test
         teacher1 = new Teacher();
         teacher1.setId(1L);
-        teacher1.setFirstName("Margot");
-        teacher1.setLastName("DELAHAYE");
-        teacher1.setCreatedAt(LocalDateTime.now());
-        teacher1.setUpdatedAt(LocalDateTime.now());
+        teacher1.setFirstName("John");
+        teacher1.setLastName("Doe");
 
         teacher2 = new Teacher();
         teacher2.setId(2L);
-        teacher2.setFirstName("Hélène");
-        teacher2.setLastName("THIERCELIN");
-        teacher2.setCreatedAt(LocalDateTime.now());
-        teacher2.setUpdatedAt(LocalDateTime.now());
+        teacher2.setFirstName("Jane");
+        teacher2.setLastName("Smith");
     }
 
     @Test
     public void testFindAll() {
         // Arrange
-        List<Teacher> expectedTeachers = Arrays.asList(teacher1, teacher2);
-        when(teacherRepository.findAll()).thenReturn(expectedTeachers);
+        when(teacherRepository.findAll()).thenReturn(Arrays.asList(teacher1, teacher2));
 
         // Act
-        List<Teacher> actualTeachers = teacherService.findAll();
+        List<Teacher> result = teacherService.findAll();
 
         // Assert
-        assertEquals(2, actualTeachers.size());
-        assertEquals("Margot", actualTeachers.get(0).getFirstName());
-        assertEquals("Hélène", actualTeachers.get(1).getFirstName());
-        verify(teacherRepository, times(1)).findAll();
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(1L, result.get(0).getId());
+        assertEquals("John", result.get(0).getFirstName());
+        assertEquals("Doe", result.get(0).getLastName());
+        assertEquals(2L, result.get(1).getId());
+        assertEquals("Jane", result.get(1).getFirstName());
+        assertEquals("Smith", result.get(1).getLastName());
+
+        verify(teacherRepository).findAll();
     }
 
     @Test
-    public void testFindById_ExistingTeacher() {
+    public void testFindAllReturnsEmptyList() {
+        // Arrange
+        when(teacherRepository.findAll()).thenReturn(List.of());
+
+        // Act
+        List<Teacher> result = teacherService.findAll();
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(teacherRepository).findAll();
+    }
+
+    @Test
+    public void testFindByIdReturnsTeacher() {
         // Arrange
         when(teacherRepository.findById(1L)).thenReturn(Optional.of(teacher1));
 
         // Act
-        Teacher foundTeacher = teacherService.findById(1L);
+        Teacher result = teacherService.findById(1L);
 
         // Assert
-        assertNotNull(foundTeacher);
-        assertEquals(1L, foundTeacher.getId());
-        assertEquals("Margot", foundTeacher.getFirstName());
-        verify(teacherRepository, times(1)).findById(1L);
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("John", result.getFirstName());
+        assertEquals("Doe", result.getLastName());
+
+        verify(teacherRepository).findById(1L);
     }
 
     @Test
-    public void testFindById_NonExistingTeacher() {
+    public void testFindByIdReturnsNullWhenNotFound() {
         // Arrange
-        when(teacherRepository.findById(3L)).thenReturn(Optional.empty());
+        when(teacherRepository.findById(999L)).thenReturn(Optional.empty());
 
         // Act
-        Teacher foundTeacher = teacherService.findById(3L);
+        Teacher result = teacherService.findById(999L);
 
         // Assert
-        assertNull(foundTeacher);
-        verify(teacherRepository, times(1)).findById(3L);
+        assertNull(result);
+        verify(teacherRepository).findById(999L);
     }
 }

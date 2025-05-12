@@ -3,7 +3,6 @@ package com.openclassrooms.starterjwt.services;
 import com.openclassrooms.starterjwt.exception.BadRequestException;
 import com.openclassrooms.starterjwt.exception.NotFoundException;
 import com.openclassrooms.starterjwt.models.Session;
-import com.openclassrooms.starterjwt.models.Teacher;
 import com.openclassrooms.starterjwt.models.User;
 import com.openclassrooms.starterjwt.repository.SessionRepository;
 import com.openclassrooms.starterjwt.repository.UserRepository;
@@ -14,15 +13,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class SessionServiceTest {
@@ -36,222 +33,246 @@ public class SessionServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    private Session session1;
-    private Session session2;
-    private User user;
-    private Teacher teacher;
+    private Session testSession;
+    private User testUser;
+    private User testUser2;
 
     @BeforeEach
-    public void setUp() {
-        // Configuration du user
-        user = new User();
-        user.setId(1L);
-        user.setEmail("user@test.com");
-        user.setLastName("User");
-        user.setFirstName("Test");
-        user.setPassword("password");
-        user.setAdmin(false);
-        
-        // Configuration du teacher
-        teacher = new Teacher();
-        teacher.setId(1L);
-        teacher.setFirstName("Teacher");
-        teacher.setLastName("Test");
-        
-        // Configuration de la session 1
-        session1 = new Session();
-        session1.setId(1L);
-        session1.setName("Session Yoga");
-        session1.setDate(new Date()); // Utiliser Date au lieu de LocalDateTime
-        session1.setDescription("Description de la session yoga");
-        session1.setTeacher(teacher); // Utiliser un objet Teacher au lieu de setTeacher_id
-        session1.setUsers(new ArrayList<>());
-        session1.setCreatedAt(LocalDateTime.now());
-        session1.setUpdatedAt(LocalDateTime.now());
+    public void setup() {
+        // Préparation d'une session de test
+        testSession = new Session();
+        testSession.setId(1L);
+        testSession.setName("Yoga matinal");
+        testSession.setDescription("Session de yoga pour bien commencer la journée");
+        testSession.setUsers(new ArrayList<>());
 
-        // Configuration de la session 2
-        session2 = new Session();
-        session2.setId(2L);
-        session2.setName("Session Méditation");
-        session2.setDate(new Date()); // Utiliser Date au lieu de LocalDateTime
-        session2.setDescription("Description de la session méditation");
-        session2.setTeacher(teacher); // Utiliser un objet Teacher au lieu de setTeacher_id
-        session2.setUsers(new ArrayList<>());
-        session2.setCreatedAt(LocalDateTime.now());
-        session2.setUpdatedAt(LocalDateTime.now());
+        // Préparation d'un utilisateur de test
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setEmail("user@test.com");
+        testUser.setFirstName("John");
+        testUser.setLastName("Doe");
+        testUser.setPassword("password");
+        testUser.setAdmin(false);
+
+        // Second utilisateur pour les tests
+        testUser2 = new User();
+        testUser2.setId(2L);
+        testUser2.setEmail("user2@test.com");
+        testUser2.setFirstName("Jane");
+        testUser2.setLastName("Smith");
+        testUser2.setPassword("password");
+        testUser2.setAdmin(false);
     }
 
     @Test
-    public void testCreate() {
+    public void testCreateSession() {
         // Arrange
-        when(sessionRepository.save(any(Session.class))).thenReturn(session1);
+        when(sessionRepository.save(testSession)).thenReturn(testSession);
 
         // Act
-        Session createdSession = sessionService.create(session1);
-
-        // Assert
-        assertNotNull(createdSession);
-        assertEquals("Session Yoga", createdSession.getName());
-        verify(sessionRepository, times(1)).save(session1);
-    }
-
-    @Test
-    public void testDelete() {
-        // Act
-        sessionService.delete(1L);
-
-        // Assert
-        verify(sessionRepository, times(1)).deleteById(1L);
-    }
-
-    @Test
-    public void testFindAll() {
-        // Arrange
-        List<Session> expectedSessions = Arrays.asList(session1, session2);
-        when(sessionRepository.findAll()).thenReturn(expectedSessions);
-
-        // Act
-        List<Session> actualSessions = sessionService.findAll();
-
-        // Assert
-        assertEquals(2, actualSessions.size());
-        assertEquals("Session Yoga", actualSessions.get(0).getName());
-        assertEquals("Session Méditation", actualSessions.get(1).getName());
-        verify(sessionRepository, times(1)).findAll();
-    }
-
-    @Test
-    public void testGetById_ExistingSession() {
-        // Arrange
-        when(sessionRepository.findById(1L)).thenReturn(Optional.of(session1));
-
-        // Act
-        Session foundSession = sessionService.getById(1L);
-
-        // Assert
-        assertNotNull(foundSession);
-        assertEquals(1L, foundSession.getId());
-        assertEquals("Session Yoga", foundSession.getName());
-        verify(sessionRepository, times(1)).findById(1L);
-    }
-
-    @Test
-    public void testGetById_NonExistingSession() {
-        // Arrange
-        when(sessionRepository.findById(3L)).thenReturn(Optional.empty());
-
-        // Act
-        Session foundSession = sessionService.getById(3L);
-
-        // Assert
-        assertNull(foundSession);
-        verify(sessionRepository, times(1)).findById(3L);
-    }
-
-    @Test
-    public void testUpdate() {
-        // Arrange
-        Session updatedSession = session1;
-        updatedSession.setName("Session Yoga Updated");
-        when(sessionRepository.save(any(Session.class))).thenReturn(updatedSession);
-
-        // Act
-        Session result = sessionService.update(1L, updatedSession);
+        Session result = sessionService.create(testSession);
 
         // Assert
         assertNotNull(result);
-        assertEquals("Session Yoga Updated", result.getName());
         assertEquals(1L, result.getId());
-        verify(sessionRepository, times(1)).save(updatedSession);
+        assertEquals("Yoga matinal", result.getName());
+        assertEquals("Session de yoga pour bien commencer la journée", result.getDescription());
+
+        verify(sessionRepository).save(testSession);
     }
 
     @Test
-    public void testParticipate() {
+    public void testDeleteSession() {
         // Arrange
-        when(sessionRepository.findById(1L)).thenReturn(Optional.of(session1));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        
+        Long sessionId = 1L;
+        doNothing().when(sessionRepository).deleteById(sessionId);
+
+        // Act
+        sessionService.delete(sessionId);
+
+        // Assert
+        verify(sessionRepository).deleteById(sessionId);
+    }
+
+    @Test
+    public void testFindAllSessions() {
+        // Arrange
+        Session session2 = new Session();
+        session2.setId(2L);
+        session2.setName("Yoga avancé");
+        session2.setDescription("Session de yoga avancé");
+        List<Session> sessions = Arrays.asList(testSession, session2);
+
+        when(sessionRepository.findAll()).thenReturn(sessions);
+
+        // Act
+        List<Session> result = sessionService.findAll();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(1L, result.get(0).getId());
+        assertEquals("Yoga matinal", result.get(0).getName());
+        assertEquals(2L, result.get(1).getId());
+        assertEquals("Yoga avancé", result.get(1).getName());
+
+        verify(sessionRepository).findAll();
+    }
+
+    @Test
+    public void testGetSessionById() {
+        // Arrange
+        when(sessionRepository.findById(1L)).thenReturn(Optional.of(testSession));
+
+        // Act
+        Session result = sessionService.getById(1L);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("Yoga matinal", result.getName());
+
+        verify(sessionRepository).findById(1L);
+    }
+
+    @Test
+    public void testGetSessionByIdReturnsNullWhenNotFound() {
+        // Arrange
+        when(sessionRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // Act
+        Session result = sessionService.getById(999L);
+
+        // Assert
+        assertNull(result);
+
+        verify(sessionRepository).findById(999L);
+    }
+
+    @Test
+    public void testUpdateSession() {
+        // Arrange
+        testSession.setName("Yoga du soir");
+        testSession.setDescription("Session de yoga pour bien terminer la journée");
+
+        when(sessionRepository.save(testSession)).thenReturn(testSession);
+
+        // Act
+        Session result = sessionService.update(1L, testSession);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("Yoga du soir", result.getName());
+        assertEquals("Session de yoga pour bien terminer la journée", result.getDescription());
+
+        verify(sessionRepository).save(testSession);
+    }
+
+    @Test
+    public void testParticipateSuccess() {
+        // Arrange
+        when(sessionRepository.findById(1L)).thenReturn(Optional.of(testSession));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(sessionRepository.save(testSession)).thenReturn(testSession);
+
         // Act
         sessionService.participate(1L, 1L);
-        
+
         // Assert
-        verify(sessionRepository, times(1)).findById(1L);
-        verify(userRepository, times(1)).findById(1L);
-        verify(sessionRepository, times(1)).save(session1);
-        assertTrue(session1.getUsers().contains(user));
+        verify(sessionRepository).findById(1L);
+        verify(userRepository).findById(1L);
+        verify(sessionRepository).save(testSession);
+        
+        // Vérification que l'utilisateur a bien été ajouté à la session
+        assertTrue(testSession.getUsers().contains(testUser));
     }
 
     @Test
-    public void testParticipate_SessionNotFound() {
+    public void testParticipateThrowsNotFoundExceptionWhenSessionNotFound() {
         // Arrange
-        when(sessionRepository.findById(3L)).thenReturn(Optional.empty());
-        // Puisque le code appelle userRepository.findById même si la session n'est pas trouvée
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        
+        when(sessionRepository.findById(999L)).thenReturn(Optional.empty());
+
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> sessionService.participate(3L, 1L));
-        verify(sessionRepository, times(1)).findById(3L);
-        // Ne vérifions pas si userRepository.findById est appelé ou non, car cela dépend de l'implémentation
+        assertThrows(NotFoundException.class, () -> sessionService.participate(999L, 1L));
+        
+        verify(sessionRepository).findById(999L);
+        verify(userRepository).findById(1L);
+        verify(sessionRepository, never()).save(any(Session.class));
     }
 
     @Test
-    public void testParticipate_UserNotFound() {
+    public void testParticipateThrowsNotFoundExceptionWhenUserNotFound() {
         // Arrange
-        when(sessionRepository.findById(1L)).thenReturn(Optional.of(session1));
-        when(userRepository.findById(3L)).thenReturn(Optional.empty());
-        
+        when(sessionRepository.findById(1L)).thenReturn(Optional.of(testSession));
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> sessionService.participate(1L, 3L));
-        verify(sessionRepository, times(1)).findById(1L);
-        verify(userRepository, times(1)).findById(3L);
-    }
-    
-    @Test
-    public void testParticipate_UserAlreadyParticipates() {
-        // Arrange
-        session1.getUsers().add(user); // Ajout préalable de l'utilisateur
-        when(sessionRepository.findById(1L)).thenReturn(Optional.of(session1));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        assertThrows(NotFoundException.class, () -> sessionService.participate(1L, 999L));
         
+        verify(sessionRepository).findById(1L);
+        verify(userRepository).findById(999L);
+        verify(sessionRepository, never()).save(any(Session.class));
+    }
+
+    @Test
+    public void testParticipateThrowsBadRequestExceptionWhenUserAlreadyParticipates() {
+        // Arrange
+        testSession.getUsers().add(testUser);
+        
+        when(sessionRepository.findById(1L)).thenReturn(Optional.of(testSession));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
         // Act & Assert
         assertThrows(BadRequestException.class, () -> sessionService.participate(1L, 1L));
-        verify(sessionRepository, times(1)).findById(1L);
-        verify(userRepository, times(1)).findById(1L);
+        
+        verify(sessionRepository).findById(1L);
+        verify(userRepository).findById(1L);
+        verify(sessionRepository, never()).save(any(Session.class));
     }
 
     @Test
-    public void testNoLongerParticipate() {
+    public void testNoLongerParticipateSuccess() {
         // Arrange
-        session1.getUsers().add(user); // Ajouter l'utilisateur à la session
-        when(sessionRepository.findById(1L)).thenReturn(Optional.of(session1));
+        testSession.getUsers().add(testUser);
         
+        when(sessionRepository.findById(1L)).thenReturn(Optional.of(testSession));
+        when(sessionRepository.save(testSession)).thenReturn(testSession);
+
         // Act
         sessionService.noLongerParticipate(1L, 1L);
-        
+
         // Assert
-        verify(sessionRepository, times(1)).findById(1L);
-        // Remarque: Dans l'implémentation réelle, userRepository.findById n'est pas appelé
-        verify(sessionRepository, times(1)).save(session1);
-        assertFalse(session1.getUsers().contains(user));
+        verify(sessionRepository).findById(1L);
+        verify(sessionRepository).save(testSession);
+        
+        // Vérification que l'utilisateur a bien été retiré de la session
+        assertFalse(testSession.getUsers().contains(testUser));
     }
 
     @Test
-    public void testNoLongerParticipate_SessionNotFound() {
+    public void testNoLongerParticipateThrowsNotFoundExceptionWhenSessionNotFound() {
         // Arrange
-        when(sessionRepository.findById(3L)).thenReturn(Optional.empty());
-        
+        when(sessionRepository.findById(999L)).thenReturn(Optional.empty());
+
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> sessionService.noLongerParticipate(3L, 1L));
-        verify(sessionRepository, times(1)).findById(3L);
+        assertThrows(NotFoundException.class, () -> sessionService.noLongerParticipate(999L, 1L));
+        
+        verify(sessionRepository).findById(999L);
+        verify(sessionRepository, never()).save(any(Session.class));
     }
 
     @Test
-    public void testNoLongerParticipate_UserNotParticipating() {
-        // Arrange - l'utilisateur ne participe pas à la session
-        when(sessionRepository.findById(1L)).thenReturn(Optional.of(session1));
-        
+    public void testNoLongerParticipateThrowsBadRequestExceptionWhenUserDoesNotParticipate() {
+        // Arrange
+        // L'utilisateur n'est pas dans la liste des participants
+        when(sessionRepository.findById(1L)).thenReturn(Optional.of(testSession));
+
         // Act & Assert
         assertThrows(BadRequestException.class, () -> sessionService.noLongerParticipate(1L, 1L));
-        verify(sessionRepository, times(1)).findById(1L);
+        
+        verify(sessionRepository).findById(1L);
+        verify(sessionRepository, never()).save(any(Session.class));
     }
 }

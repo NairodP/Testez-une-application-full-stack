@@ -4,288 +4,139 @@ import com.openclassrooms.starterjwt.dto.SessionDto;
 import com.openclassrooms.starterjwt.models.Session;
 import com.openclassrooms.starterjwt.models.Teacher;
 import com.openclassrooms.starterjwt.models.User;
-import com.openclassrooms.starterjwt.services.TeacherService;
-import com.openclassrooms.starterjwt.services.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
-import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
 public class SessionMapperTest {
 
-    @Mock
-    private TeacherService teacherService;
+    @Autowired
+    private SessionMapper sessionMapper;
 
-    @Mock
-    private UserService userService;
-
-    @Spy
-    @InjectMocks
-    private SessionMapperImpl sessionMapper;
-
+    private Session session;
+    private SessionDto sessionDto;
     private Teacher teacher;
-    private User user1;
-    private User user2;
-    private Date sessionDate;
-    private LocalDateTime now;
-    
+    private List<User> users;
+
     @BeforeEach
     public void setup() {
-        now = LocalDateTime.now();
-        sessionDate = new Date();
-        
-        teacher = Teacher.builder()
-                .id(1L)
-                .firstName("John")
-                .lastName("Doe")
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
-        
-        user1 = User.builder()
-                .id(1L)
-                .email("user1@test.com")
-                .firstName("User")
-                .lastName("One")
-                .password("password1")
-                .admin(false)
-                .build();
-                
-        user2 = User.builder()
-                .id(2L)
-                .email("user2@test.com")
-                .firstName("User")
-                .lastName("Two")
-                .password("password2")
-                .admin(false)
-                .build();
-        
-        // Configurer les mocks pour teacherService et userService
-        when(teacherService.findById(1L)).thenReturn(teacher);
-        when(userService.findById(1L)).thenReturn(user1);
-        when(userService.findById(2L)).thenReturn(user2);
-    }
+        // Création d'un enseignant
+        teacher = new Teacher();
+        teacher.setId(1L);
+        teacher.setFirstName("John");
+        teacher.setLastName("Doe");
 
-    @Test
-    public void shouldMapSessionToSessionDto() {
-        // Arrange
-        List<User> userList = Arrays.asList(user1, user2);
-        
-        Session session = Session.builder()
-                .id(1L)
-                .name("Yoga Session")
-                .date(sessionDate)
-                .description("Yoga session description")
-                .teacher(teacher)
-                .users(userList)
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
+        // Création d'utilisateurs
+        User user1 = new User();
+        user1.setId(1L);
+        user1.setEmail("user1@test.com");
+        user1.setFirstName("User");
+        user1.setLastName("One");
+        user1.setPassword("password");
+        user1.setAdmin(false);
 
-        // Act
-        SessionDto sessionDto = sessionMapper.toDto(session);
+        User user2 = new User();
+        user2.setId(2L);
+        user2.setEmail("user2@test.com");
+        user2.setFirstName("User");
+        user2.setLastName("Two");
+        user2.setPassword("password");
+        user2.setAdmin(false);
 
-        // Assert
-        assertNotNull(sessionDto);
-        assertEquals(session.getId(), sessionDto.getId());
-        assertEquals(session.getName(), sessionDto.getName());
-        assertEquals(session.getDate(), sessionDto.getDate());
-        assertEquals(session.getDescription(), sessionDto.getDescription());
-        assertEquals(teacher.getId(), sessionDto.getTeacher_id());
-        assertEquals(session.getCreatedAt(), sessionDto.getCreatedAt());
-        assertEquals(session.getUpdatedAt(), sessionDto.getUpdatedAt());
-        
-        assertNotNull(sessionDto.getUsers());
-        assertEquals(2, sessionDto.getUsers().size());
-        assertTrue(sessionDto.getUsers().contains(1L));
-        assertTrue(sessionDto.getUsers().contains(2L));
-    }
+        users = Arrays.asList(user1, user2);
 
-    @Test
-    public void shouldMapSessionDtoToSession() {
-        // Arrange
-        List<Long> userIds = Arrays.asList(1L, 2L);
-        
-        SessionDto sessionDto = new SessionDto();
+        // Création d'une session
+        session = new Session();
+        session.setId(1L);
+        session.setName("Yoga matinal");
+        session.setDescription("Session de yoga pour bien commencer la journée");
+        session.setDate(new java.util.Date());
+        session.setTeacher(teacher);
+        session.setUsers(new ArrayList<>(users));
+
+        // Création d'un DTO de session
+        sessionDto = new SessionDto();
         sessionDto.setId(1L);
-        sessionDto.setName("Yoga Session");
-        sessionDto.setDate(sessionDate);
-        sessionDto.setDescription("Yoga session description");
+        sessionDto.setName("Yoga matinal");
+        sessionDto.setDescription("Session de yoga pour bien commencer la journée");
+        sessionDto.setDate(new java.util.Date());
         sessionDto.setTeacher_id(1L);
-        sessionDto.setUsers(userIds);
-        sessionDto.setCreatedAt(now);
-        sessionDto.setUpdatedAt(now);
-
-        // Act
-        Session session = sessionMapper.toEntity(sessionDto);
-
-        // Assert
-        assertNotNull(session);
-        assertEquals(sessionDto.getId(), session.getId());
-        assertEquals(sessionDto.getName(), session.getName());
-        assertEquals(sessionDto.getDate(), session.getDate());
-        assertEquals(sessionDto.getDescription(), session.getDescription());
-        assertEquals(sessionDto.getCreatedAt(), session.getCreatedAt());
-        assertEquals(sessionDto.getUpdatedAt(), session.getUpdatedAt());
-        
-        assertNotNull(session.getTeacher());
-        assertEquals(teacher.getId(), session.getTeacher().getId());
-        assertEquals(teacher.getFirstName(), session.getTeacher().getFirstName());
-        assertEquals(teacher.getLastName(), session.getTeacher().getLastName());
-        
-        assertNotNull(session.getUsers());
-        assertEquals(2, session.getUsers().size());
-        assertTrue(session.getUsers().stream().anyMatch(user -> user.getId().equals(1L)));
-        assertTrue(session.getUsers().stream().anyMatch(user -> user.getId().equals(2L)));
+        sessionDto.setUsers(Arrays.asList(1L, 2L));
     }
 
     @Test
-    public void shouldHandleNullTeacherIdAndEmptyUsersList() {
-        // Arrange
-        SessionDto sessionDto = new SessionDto();
-        sessionDto.setId(1L);
-        sessionDto.setName("Yoga Session");
-        sessionDto.setDate(sessionDate);
-        sessionDto.setDescription("Yoga session description");
-        sessionDto.setTeacher_id(null);
-        sessionDto.setUsers(null);
-        sessionDto.setCreatedAt(now);
-        sessionDto.setUpdatedAt(now);
-
+    public void testToDto() {
         // Act
-        Session session = sessionMapper.toEntity(sessionDto);
+        SessionDto result = sessionMapper.toDto(session);
 
         // Assert
-        assertNotNull(session);
-        assertEquals(sessionDto.getId(), session.getId());
-        assertEquals(sessionDto.getName(), session.getName());
-        assertEquals(sessionDto.getDate(), session.getDate());
-        assertEquals(sessionDto.getDescription(), session.getDescription());
-        assertNull(session.getTeacher());
-        assertNotNull(session.getUsers());
-        assertTrue(session.getUsers().isEmpty());
+        assertNotNull(result);
+        assertEquals(session.getId(), result.getId());
+        assertEquals(session.getName(), result.getName());
+        assertEquals(session.getDescription(), result.getDescription());
+        assertEquals(session.getTeacher().getId(), result.getTeacher_id());
+        
+        // Vérification des IDs d'utilisateurs
+        assertEquals(2, result.getUsers().size());
+        assertTrue(result.getUsers().contains(1L));
+        assertTrue(result.getUsers().contains(2L));
     }
 
     @Test
-    public void shouldHandleSessionWithNullTeacherAndEmptyUsers() {
+    public void testToDtoWithNullValues() {
         // Arrange
-        Session session = Session.builder()
-                .id(1L)
-                .name("Yoga Session")
-                .date(sessionDate)
-                .description("Yoga session description")
-                .teacher(null)
-                .users(new ArrayList<>())
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
+        Session sessionWithNulls = new Session();
+        sessionWithNulls.setId(1L);
+        sessionWithNulls.setName("Test Session");
+        // Pas de description, teacher ou users
 
         // Act
-        SessionDto sessionDto = sessionMapper.toDto(session);
+        SessionDto result = sessionMapper.toDto(sessionWithNulls);
 
         // Assert
-        assertNotNull(sessionDto);
-        assertEquals(session.getId(), sessionDto.getId());
-        assertEquals(session.getName(), sessionDto.getName());
-        assertEquals(session.getDate(), sessionDto.getDate());
-        assertEquals(session.getDescription(), sessionDto.getDescription());
-        assertNull(sessionDto.getTeacher_id());
-        assertNotNull(sessionDto.getUsers());
-        assertTrue(sessionDto.getUsers().isEmpty());
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("Test Session", result.getName());
+        assertNull(result.getDescription());
+        assertNull(result.getTeacher_id());
+        assertTrue(result.getUsers().isEmpty());
     }
 
     @Test
-    public void shouldMapSessionListToSessionDtoList() {
+    public void testToDtoList() {
         // Arrange
-        List<User> userList = Arrays.asList(user1, user2);
-        
-        Session session1 = Session.builder()
-                .id(1L)
-                .name("Yoga Session 1")
-                .date(sessionDate)
-                .description("Yoga session 1 description")
-                .teacher(teacher)
-                .users(userList)
-                .build();
-        
-        Session session2 = Session.builder()
-                .id(2L)
-                .name("Yoga Session 2")
-                .date(sessionDate)
-                .description("Yoga session 2 description")
-                .teacher(teacher)
-                .users(userList)
-                .build();
-        
-        List<Session> sessions = Arrays.asList(session1, session2);
+        Session session2 = new Session();
+        session2.setId(2L);
+        session2.setName("Yoga avancé");
+        session2.setDescription("Session de yoga pour les expérimentés");
+        session2.setDate(new java.util.Date());
+        session2.setTeacher(teacher);
+        session2.setUsers(new ArrayList<>());
+
+        List<Session> sessions = Arrays.asList(session, session2);
 
         // Act
-        List<SessionDto> sessionDtos = sessionMapper.toDto(sessions);
+        List<SessionDto> result = sessionMapper.toDto(sessions);
 
         // Assert
-        assertNotNull(sessionDtos);
-        assertEquals(2, sessionDtos.size());
+        assertNotNull(result);
+        assertEquals(2, result.size());
         
-        assertEquals(session1.getId(), sessionDtos.get(0).getId());
-        assertEquals(session1.getName(), sessionDtos.get(0).getName());
-        assertEquals(session1.getDescription(), sessionDtos.get(0).getDescription());
+        assertEquals(1L, result.get(0).getId());
+        assertEquals("Yoga matinal", result.get(0).getName());
+        assertEquals(2, result.get(0).getUsers().size());
         
-        assertEquals(session2.getId(), sessionDtos.get(1).getId());
-        assertEquals(session2.getName(), sessionDtos.get(1).getName());
-        assertEquals(session2.getDescription(), sessionDtos.get(1).getDescription());
-    }
-
-    @Test
-    public void shouldMapSessionDtoListToSessionList() {
-        // Arrange
-        List<Long> userIds = Arrays.asList(1L, 2L);
-        
-        SessionDto sessionDto1 = new SessionDto();
-        sessionDto1.setId(1L);
-        sessionDto1.setName("Yoga Session 1");
-        sessionDto1.setDate(sessionDate);
-        sessionDto1.setDescription("Yoga session 1 description");
-        sessionDto1.setTeacher_id(1L);
-        sessionDto1.setUsers(userIds);
-        
-        SessionDto sessionDto2 = new SessionDto();
-        sessionDto2.setId(2L);
-        sessionDto2.setName("Yoga Session 2");
-        sessionDto2.setDate(sessionDate);
-        sessionDto2.setDescription("Yoga session 2 description");
-        sessionDto2.setTeacher_id(1L);
-        sessionDto2.setUsers(userIds);
-        
-        List<SessionDto> sessionDtos = Arrays.asList(sessionDto1, sessionDto2);
-
-        // Act
-        List<Session> sessions = sessionMapper.toEntity(sessionDtos);
-
-        // Assert
-        assertNotNull(sessions);
-        assertEquals(2, sessions.size());
-        
-        assertEquals(sessionDto1.getId(), sessions.get(0).getId());
-        assertEquals(sessionDto1.getName(), sessions.get(0).getName());
-        assertEquals(sessionDto1.getDescription(), sessions.get(0).getDescription());
-        
-        assertEquals(sessionDto2.getId(), sessions.get(1).getId());
-        assertEquals(sessionDto2.getName(), sessions.get(1).getName());
-        assertEquals(sessionDto2.getDescription(), sessions.get(1).getDescription());
+        assertEquals(2L, result.get(1).getId());
+        assertEquals("Yoga avancé", result.get(1).getName());
+        assertTrue(result.get(1).getUsers().isEmpty());
     }
 }

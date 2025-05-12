@@ -7,33 +7,37 @@ import com.openclassrooms.starterjwt.security.services.UserDetailsImpl;
 import com.openclassrooms.starterjwt.services.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 public class UserControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @InjectMocks
+    private UserController userController;
 
-    @MockBean
+    @Mock
     private UserService userService;
 
-    @MockBean
+    @Mock
     private UserMapper userMapper;
+
+    @Mock
+    private SecurityContext securityContext;
+
+    @Mock
+    private Authentication authentication;
 
     private User testUser;
     private UserDto testUserDto;
@@ -41,7 +45,7 @@ public class UserControllerTest {
 
     @BeforeEach
     public void setup() {
-        // Configuration du user de test
+        // Configuration de l'utilisateur de test
         testUser = new User();
         testUser.setId(1L);
         testUser.setEmail("test@test.com");
@@ -50,16 +54,15 @@ public class UserControllerTest {
         testUser.setPassword("encodedPassword");
         testUser.setAdmin(false);
 
-        // Configuration du DTO
+        // Configuration du DTO d'utilisateur
         testUserDto = new UserDto();
         testUserDto.setId(1L);
         testUserDto.setEmail("test@test.com");
         testUserDto.setFirstName("John");
         testUserDto.setLastName("Doe");
-        testUserDto.setPassword("encodedPassword");
         testUserDto.setAdmin(false);
 
-        // Configuration de l'authentification
+        // Configuration des détails d'utilisateur pour l'authentification
         userDetails = UserDetailsImpl.builder()
                 .id(1L)
                 .username("test@test.com")
@@ -67,107 +70,113 @@ public class UserControllerTest {
                 .lastName("Doe")
                 .password("encodedPassword")
                 .build();
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     @Test
-    public void testFindByIdSuccess() throws Exception {
+    public void testFindByIdReturnsUser() {
         // Arrange
         when(userService.findById(1L)).thenReturn(testUser);
         when(userMapper.toDto(testUser)).thenReturn(testUserDto);
 
-        // Act & Assert
-        mockMvc.perform(get("/api/user/1")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        // Act
+        ResponseEntity<?> response = userController.findById("1");
 
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(testUserDto, response.getBody());
         verify(userService).findById(1L);
         verify(userMapper).toDto(testUser);
     }
 
     @Test
-    public void testFindByIdNotFound() throws Exception {
+    public void testFindByIdReturnsNotFoundWhenUserNotFound() {
         // Arrange
         when(userService.findById(999L)).thenReturn(null);
 
-        // Act & Assert
-        mockMvc.perform(get("/api/user/999")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+        // Act
+        ResponseEntity<?> response = userController.findById("999");
 
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         verify(userService).findById(999L);
         verify(userMapper, never()).toDto(any(User.class));
     }
 
     @Test
-    public void testFindByIdBadRequest() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/api/user/invalid")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+    public void testFindByIdReturnsBadRequestWithInvalidId() {
+        // Act
+        ResponseEntity<?> response = userController.findById("invalid");
 
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         verify(userService, never()).findById(anyLong());
-        verify(userMapper, never()).toDto(any(User.class));
     }
 
     @Test
-    public void testDeleteSuccess() throws Exception {
+    public void testDeleteUserSuccess() {
         // Arrange
         when(userService.findById(1L)).thenReturn(testUser);
+        doNothing().when(userService).delete(1L);
 
-        // Act & Assert
-        mockMvc.perform(delete("/api/user/1")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        // Configuration du contexte d'authentification
+        SecurityContextHolder.setContext(securityContext);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
 
+        // Act
+        ResponseEntity<?> response = userController.save("1");
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(userService).findById(1L);
         verify(userService).delete(1L);
     }
 
     @Test
-    public void testDeleteUnauthorized() throws Exception {
-        // Arrange
-        User differentUser = new User();
-        differentUser.setId(2L);
-        differentUser.setEmail("different@test.com");
-        differentUser.setFirstName("Different");
-        differentUser.setLastName("User");
-
-        when(userService.findById(2L)).thenReturn(differentUser);
-
-        // Act & Assert
-        mockMvc.perform(delete("/api/user/2")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized());
-
-        verify(userService).findById(2L);
-        verify(userService, never()).delete(anyLong());
-    }
-
-    @Test
-    public void testDeleteNotFound() throws Exception {
+    public void testDeleteUserReturnsNotFoundWhenUserNotFound() {
         // Arrange
         when(userService.findById(999L)).thenReturn(null);
 
-        // Act & Assert
-        mockMvc.perform(delete("/api/user/999")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+        // Act
+        ResponseEntity<?> response = userController.save("999");
 
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         verify(userService).findById(999L);
         verify(userService, never()).delete(anyLong());
     }
 
     @Test
-    public void testDeleteBadRequest() throws Exception {
-        // Act & Assert
-        mockMvc.perform(delete("/api/user/invalid")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+    public void testDeleteUserReturnsBadRequestWithInvalidId() {
+        // Act
+        ResponseEntity<?> response = userController.save("invalid");
 
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         verify(userService, never()).findById(anyLong());
+        verify(userService, never()).delete(anyLong());
+    }
+
+    @Test
+    public void testDeleteUserReturnsUnauthorizedWhenDifferentUser() {
+        // Arrange
+        User differentUser = new User();
+        differentUser.setId(2L);
+        differentUser.setEmail("different@test.com");
+
+        when(userService.findById(2L)).thenReturn(differentUser);
+
+        // Configuration du contexte d'authentification
+        SecurityContextHolder.setContext(securityContext);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(userDetails); // Connecté en tant que test@test.com
+
+        // Act
+        ResponseEntity<?> response = userController.save("2"); // Essayer de supprimer different@test.com
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        verify(userService).findById(2L);
         verify(userService, never()).delete(anyLong());
     }
 }
