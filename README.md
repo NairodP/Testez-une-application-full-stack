@@ -18,17 +18,14 @@ Cette application full-stack permet de gérer des sessions de yoga avec un syst�
 2. Créez une base de données pour l'application :
 
 ```sql
-CREATE DATABASE yoga;
-USE yoga;
+CREATE DATABASE le_nom_de_votre_base_de_données;
+```
+USE le_nom_de_votre_base_de_données;
 ```
 
-3. Exécutez le script SQL fourni dans `ressources/sql/script.sql` pour créer le schéma de la base de données :
+3. Exécutez le script SQL fourni dans `ressources/sql/script.sql` pour créer le schéma de la base de données et les tables nécessaires.
 
-```bash
-mysql -u <votre_utilisateur> -p yoga < ressources/sql/script.sql
-```
-
-4. Configurez les informations de connexion à la base de données dans le fichier `.env` du backend :
+4. Configurez les informations de connexion à la base de données dans le fichier `.env` du backend si vous souhaitez ensuite partager le projet avec d'autres personnes sans pour autant partager vos identifiants de connexion :
 
 ```
 DB_URL=jdbc:mysql://localhost:3306/<le_nom_de_votre_base_de_données>
@@ -55,6 +52,8 @@ cd back
 ```bash
 mvn clean install
 ```
+
+Il se peut que vous rencontriez des erreurs de dépendances liées à la version de Java. Si c'est le cas, essayez de mettre à jour votre version de Java ou de Maven. Pour ma part, j'ai utilisé Java 17 et Maven 3.8.1.
 
 3. Lancez l'application Spring Boot :
 
