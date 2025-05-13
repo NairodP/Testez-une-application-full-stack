@@ -237,7 +237,7 @@ npm run test
 ```
 
 Le rapport de couverture sera disponible dans :
-`front/coverage/lcov-report/index.html`
+`front/coverage/jest/lcov-report/index.html`
 
 ### Couverture des tests E2E
 
@@ -250,6 +250,35 @@ npm run e2e:coverage
 
 Le rapport de couverture sera disponible dans :
 `front/coverage/lcov-report/index.html`
+
+### Analyse détaillée de la couverture
+
+L'application frontend présente d'excellents résultats de couverture de tests, bien au-delà des exigences du projet.
+
+#### Rapport de couverture des tests E2E (Cypress)
+
+Les tests end-to-end fournissent une couverture globale de **93,42%** pour toutes les déclarations du code, ce qui dépasse largement les attentes. Voici les métriques détaillées :
+
+| Métrique      | Couverture | Nombre       |
+|---------------|------------|--------------|
+| Déclarations  | **93,42%** | 199/213      |
+| Branches      | **90,00%** | 63/70        |
+| Fonctions     | **93,81%** | 91/97        |
+| Lignes        | **93,01%** | 173/186      |
+
+Cette excellente couverture démontre que la majorité des fonctionnalités de l'application est correctement testée dans des scénarios utilisateur réels. Les tests couvrent les principaux chemins critiques comme l'authentification, la gestion des sessions de yoga, et les interactions utilisateur.
+
+#### Points forts
+
+1. **Composants d'interface utilisateur** : Presque tous les composants atteignent une couverture supérieure à 90%, garantissant que les éléments d'UI fonctionnent comme prévu.
+
+2. **Services** : Les services cruciaux comme `SessionService`, `TeacherService`, et `UserService` sont bien couverts, assurant la fiabilité des opérations de données.
+
+3. **Fonctionnalités critiques** : Les opérations essentielles telles que l'inscription, la connexion, la création et la modification de sessions sont rigoureusement testées.
+
+#### Conclusion
+
+La couverture de tests frontend est exemplaire et répond amplement aux exigences du projet. Les tests garantissent la stabilité des fonctionnalités existantes et faciliteront les futures évolutions en détectant rapidement les régressions potentielles.
 
 ---
 

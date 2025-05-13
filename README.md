@@ -1,21 +1,8 @@
 # Application Yoga Studio
 
-Cette application full-stack permet de gérer des sessions de yoga avec un système d'utilisateurs, d'enseignants et de sessions.
+Cette application full-stack permet de gérer des sessions de yoga avec un système d'utilisateurs, d'enseignants et de sessions. Ce document présente les instructions essentielles pour installer, lancer et tester l'application.
 
-## Table des matières
-
-1. [Prérequis](#prérequis)
-2. [Installation de la base de données](#installation-de-la-base-de-données)
-3. [Installation de l'application](#installation-de-lapplication)
-   - [Backend (Java/Spring Boot)](#backend)
-   - [Frontend (Angular)](#frontend)
-4. [Utilisation de l'application](#utilisation-de-lapplication)
-5. [Tests](#tests)
-   - [Tests Backend](#tests-backend)
-   - [Tests Frontend](#tests-frontend)
-6. [Rapports de couverture](#rapports-de-couverture)
-   - [Couverture Backend](#couverture-backend)
-   - [Couverture Frontend](#couverture-frontend)
+> **Note importante** : Des README détaillés sont également disponibles dans les dossiers `/back` et `/front` avec des informations complémentaires sur l'architecture et les tests réalisés pour chaque partie de l'application.
 
 ## Prérequis
 
@@ -35,7 +22,7 @@ CREATE DATABASE yoga;
 USE yoga;
 ```
 
-3. Exécutez le script SQL fourni pour créer le schéma de la base de données :
+3. Exécutez le script SQL fourni dans `ressources/sql/script.sql` pour créer le schéma de la base de données :
 
 ```bash
 mysql -u <votre_utilisateur> -p yoga < ressources/sql/script.sql
@@ -44,7 +31,7 @@ mysql -u <votre_utilisateur> -p yoga < ressources/sql/script.sql
 4. Configurez les informations de connexion à la base de données dans le fichier `.env` du backend :
 
 ```
-DB_URL=jdbc:mysql://localhost:3306/yoga
+DB_URL=jdbc:mysql://localhost:3306/<le_nom_de_votre_base_de_données>
 DB_USERNAME=<votre_utilisateur>
 DB_PASSWORD=<votre_mot_de_passe>
 ```
@@ -75,7 +62,7 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-Le backend sera accessible à l'adresse : http://localhost:8080/api/
+Le backend se lancera sur le port 8080 par défaut.
 
 ### Frontend
 
@@ -172,11 +159,11 @@ npm run test
 ```
 
 Le rapport de couverture sera disponible dans :
-`front/coverage/lcov-report/index.html`
+`front/coverage/jest/lcov-report/index.html`
 
 #### Couverture des Tests E2E
 
-Pour générer le rapport de couverture des tests E2E (exécuter d'abord les tests E2E) :
+Pour générer le rapport de couverture des tests E2E :
 
 ```bash
 cd front
@@ -187,7 +174,13 @@ npm run e2e:coverage
 Le rapport de couverture sera disponible dans :
 `front/coverage/lcov-report/index.html`
 
+## Documentation complémentaire
+
+Pour des informations détaillées sur l'implémentation et les tests réalisés, consultez les README spécifiques :
+
+- Backend : `/back/README.md` - Détails sur l'architecture Java/Spring Boot et les tests unitaires/d'intégration
+- Frontend : `/front/README.md` - Détails sur l'architecture Angular et les tests unitaires/e2e
+
 ## Ressources supplémentaires
 
 - Collection Postman : `ressources/postman/yoga.postman_collection.json`
-  - Pour l'importer, suivez la documentation : [Importer des données dans Postman](https://learning.postman.com/docs/getting-started/importing-and-exporting-data/#importing-data-into-postman)
