@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -10,40 +10,33 @@ import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { expect } from '@jest/globals';
 import { of, throwError } from 'rxjs';
+import { By } from '@angular/platform-browser';
 
 import { RegisterComponent } from './register.component';
 import { AuthService } from '../../services/auth.service';
 
-describe('RegisterComponent', () => {
+describe('RegisterComponent (Tests d\'intégration)', () => {
   let component: RegisterComponent;
   let fixture: ComponentFixture<RegisterComponent>;
   let authService: AuthService;
   let router: Router;
-
-  const mockAuthService = {
-    register: jest.fn()
-  };
-
-  const mockRouter = {
-    navigate: jest.fn()
-  };
+  let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [RegisterComponent],
       imports: [
         BrowserAnimationsModule,
-        RouterTestingModule,
+        RouterTestingModule.withRoutes([]),
         MatCardModule,
         MatFormFieldModule,
         MatIconModule,
         MatInputModule,
         ReactiveFormsModule,
-        HttpClientModule
+        HttpClientTestingModule
       ],
       providers: [
-        { provide: AuthService, useValue: mockAuthService },
-        { provide: Router, useValue: mockRouter }
+        AuthService
       ]
     })
     .compileComponents();
@@ -135,9 +128,12 @@ describe('RegisterComponent', () => {
   });
 
   it('should call register service and navigate to login on successful registration', () => {
-    // Configurer le mock pour un succès
-    mockAuthService.register.mockReturnValue(of(void 0));
-
+    // Obtenir le contrôleur HTTP pour intercepter les requêtes
+    httpTestingController = TestBed.inject(HttpTestingController);
+    
+    // Espionner la méthode de navigation du router
+    jest.spyOn(router, 'navigate').mockReturnValue(Promise.resolve(true));
+    
     // Remplir le formulaire avec des données valides
     component.form.setValue({
       email: 'test@example.com',
@@ -149,21 +145,34 @@ describe('RegisterComponent', () => {
     // Soumettre le formulaire
     component.submit();
 
-    // Vérifier les comportements attendus
-    expect(mockAuthService.register).toHaveBeenCalledWith({
+    // Intercepter et répondre à la requête HTTP
+    const req = httpTestingController.expectOne('api/auth/register');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
       email: 'test@example.com',
       firstName: 'John',
       lastName: 'Doe',
       password: 'password123'
     });
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
+    
+    // Simuler une réponse réussie
+    req.flush(null);
+    
+    // Vérifier les comportements attendus
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
     expect(component.onError).toBeFalsy();
+    
+    // Vérifier qu'il n'y a pas de requêtes en attente
+    httpTestingController.verify();
   });
 
   it('should handle errors on registration failure', () => {
-    // Configurer le mock pour un échec
-    mockAuthService.register.mockReturnValue(throwError(() => new Error('Registration failed')));
-
+    // Obtenir le contrôleur HTTP pour intercepter les requêtes
+    httpTestingController = TestBed.inject(HttpTestingController);
+    
+    // Espionner la méthode de navigation du router
+    jest.spyOn(router, 'navigate').mockReturnValue(Promise.resolve(true));
+    
     // Remplir le formulaire avec des données valides
     component.form.setValue({
       email: 'test@example.com',
@@ -177,10 +186,16 @@ describe('RegisterComponent', () => {
 
     // Soumettre le formulaire
     component.submit();
-
+    
+    // Intercepter la requête HTTP et simuler une erreur
+    const req = httpTestingController.expectOne('api/auth/register');
+    req.error(new ErrorEvent('Network error'), { status: 500 });
+    
     // Vérifier les comportements attendus
-    expect(mockAuthService.register).toHaveBeenCalled();
-    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
     expect(component.onError).toBeTruthy();
+    
+    // Vérifier qu'il n'y a pas de requêtes en attente
+    httpTestingController.verify();
   });
 });

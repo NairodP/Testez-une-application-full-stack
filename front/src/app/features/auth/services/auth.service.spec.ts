@@ -1,28 +1,42 @@
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 import { expect } from '@jest/globals';
 
 import { AuthService } from './auth.service';
 import { LoginRequest } from '../interfaces/loginRequest.interface';
 import { RegisterRequest } from '../interfaces/registerRequest.interface';
 import { SessionInformation } from 'src/app/interfaces/sessionInformation.interface';
+import { SessionService } from 'src/app/services/session.service';
 
-describe('AuthService', () => {
+// Test d'intégration amélioré pour AuthService
+describe('AuthService (Tests d\'intégration)', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
+  let sessionService: SessionService;
+  let router: Router;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        HttpClientTestingModule
+        HttpClientTestingModule,
+        RouterTestingModule.withRoutes([])
       ],
       providers: [
-        AuthService
+        AuthService,
+        SessionService
       ]
     });
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
+    sessionService = TestBed.inject(SessionService);
+    router = TestBed.inject(Router);
+    
+    // Espionner les méthodes du SessionService pour vérifier l'intégration
+    jest.spyOn(sessionService, 'logIn');
+    jest.spyOn(router, 'navigate');
   });
 
   afterEach(() => {

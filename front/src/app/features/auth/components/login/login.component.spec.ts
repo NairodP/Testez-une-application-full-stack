@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -9,44 +9,43 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { expect } from '@jest/globals';
-import { of, throwError } from 'rxjs';
+import { By } from '@angular/platform-browser';
 import { SessionService } from 'src/app/services/session.service';
 import { SessionInformation } from 'src/app/interfaces/sessionInformation.interface';
 
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../services/auth.service';
 
-describe('LoginComponent', () => {
+describe('LoginComponent (Tests d\'intégration)', () => {
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
   let authService: AuthService;
   let sessionService: SessionService;
   let router: Router;
+  let httpTestingController: HttpTestingController;
 
-  const mockAuthService = {
-    login: jest.fn()
-  };
-
-  const mockSessionService = {
-    logIn: jest.fn()
-  };
-
-  const mockRouter = {
-    navigate: jest.fn()
+  // MockSessionInfo utilisée dans les tests
+  const sessionInfo: SessionInformation = {
+    token: 'fake-token',
+    type: 'Bearer',
+    id: 1,
+    username: 'test',
+    firstName: 'Test',
+    lastName: 'User',
+    admin: false
   };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [LoginComponent],
       providers: [
-        { provide: AuthService, useValue: mockAuthService },
-        { provide: SessionService, useValue: mockSessionService },
-        { provide: Router, useValue: mockRouter }
+        AuthService,
+        SessionService
       ],
       imports: [
-        RouterTestingModule,
+        RouterTestingModule.withRoutes([]),
         BrowserAnimationsModule,
-        HttpClientModule,
+        HttpClientTestingModule,
         MatCardModule,
         MatIconModule,
         MatFormFieldModule,
@@ -61,9 +60,11 @@ describe('LoginComponent', () => {
     authService = TestBed.inject(AuthService);
     sessionService = TestBed.inject(SessionService);
     router = TestBed.inject(Router);
+    httpTestingController = TestBed.inject(HttpTestingController);
 
-    // Reset mocks
-    jest.clearAllMocks();
+    // Espionner les méthodes pour vérifier les appels
+    jest.spyOn(sessionService, 'logIn');
+    jest.spyOn(router, 'navigate');
 
     fixture.detectChanges();
   });
@@ -120,29 +121,27 @@ describe('LoginComponent', () => {
       password: 'password123'
     };
 
-    const sessionInfo: SessionInformation = {
-      token: 'fake-token',
-      type: 'Bearer',
-      id: 1,
-      username: 'test',
-      firstName: 'Test',
-      lastName: 'User',
-      admin: false
-    };
-
     // Setup form
     component.form.setValue(loginRequest);
-
-    // Mock successful login
-    mockAuthService.login.mockReturnValue(of(sessionInfo));
-
+    
     // Submit form
     component.submit();
-
-    expect(mockAuthService.login).toHaveBeenCalledWith(loginRequest);
-    expect(mockSessionService.logIn).toHaveBeenCalledWith(sessionInfo);
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/sessions']);
+    
+    // Intercepter la requête HTTP
+    const req = httpTestingController.expectOne('api/auth/login');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(loginRequest);
+    
+    // Simuler une réponse réussie
+    req.flush(sessionInfo);
+    
+    // Vérifier les comportements attendus
+    expect(sessionService.logIn).toHaveBeenCalledWith(sessionInfo);
+    expect(router.navigate).toHaveBeenCalledWith(['/sessions']);
     expect(component.onError).toBeFalsy();
+    
+    // Vérifier qu'il n'y a pas de requêtes en attente
+    httpTestingController.verify();
   });
 
   it('should display error message on login failure', () => {
@@ -153,16 +152,23 @@ describe('LoginComponent', () => {
 
     // Setup form
     component.form.setValue(loginRequest);
-
-    // Mock failed login
-    mockAuthService.login.mockReturnValue(throwError(() => new Error('Invalid credentials')));
-
+    
     // Submit form
     component.submit();
-
-    expect(mockAuthService.login).toHaveBeenCalledWith(loginRequest);
-    expect(mockSessionService.logIn).not.toHaveBeenCalled();
-    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    
+    // Intercepter la requête HTTP
+    const req = httpTestingController.expectOne('api/auth/login');
+    expect(req.request.method).toBe('POST');
+    
+    // Simuler une erreur
+    req.error(new ErrorEvent('Network error'));
+    
+    // Vérifier les comportements attendus
+    expect(sessionService.logIn).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
     expect(component.onError).toBeTruthy();
+    
+    // Vérifier qu'il n'y a pas de requêtes en attente
+    httpTestingController.verify();
   });
 });

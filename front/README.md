@@ -83,11 +83,54 @@ Ce document présente l'ensemble des tests implémentés pour le frontend de l'a
 3. [Exécution des tests](#exécution-des-tests)
 4. [Rapports de couverture](#rapports-de-couverture)
 
-## Tests unitaires (Jest)
+## Tests unitaires et d'intégration (Jest)
 
-L'application contient **12 fichiers** de tests unitaires qui couvrent les composants et services Angular. Ces tests sont développés avec Jest et peuvent être identifiés par le suffixe `.spec.ts` dans le code source.
+L'application contient **13 fichiers** de tests qui couvrent les composants et services Angular. Ces tests sont développés avec Jest et peuvent être identifiés par le suffixe `.spec.ts` dans le code source.
 
-### Liste exhaustive des tests unitaires
+Au moins 30% des tests sont des tests d'intégration (5 fichiers sur 13), dépassant ainsi le seuil requis.
+
+### Tests d'intégration
+
+Les tests d'intégration suivants vérifient les interactions entre plusieurs composants, services et le backend via des requêtes HTTP :
+
+1. **RegisterComponent** (`/src/app/features/auth/components/register/register.component.spec.ts`)
+   - Tests d'intégration avec AuthService et HttpClient
+   - Vérification des requêtes HTTP réelles et simulation des réponses avec HttpTestingController
+
+2. **LoginComponent** (`/src/app/features/auth/components/login/login.component.spec.ts`)
+   - Tests d'intégration avec AuthService, SessionService et HttpClient
+   - Vérification des flux complets d'authentification et des redirections
+
+3. **SessionApiService** (`/src/app/features/sessions/services/session-api.service.spec.ts`)
+   - Tests d'intégration HTTP pour toutes les opérations CRUD sur les sessions
+   - Vérification des formats de requêtes et réponses
+
+4. **UserService** (`/src/app/services/user.service.spec.ts`)
+   - Tests d'intégration avec HttpClient pour la gestion des utilisateurs
+   - Vérification des requêtes HTTP et des réponses
+
+5. **TeacherService** (`/src/app/services/teacher.service.spec.ts`)
+   - Tests d'intégration avec HttpClient pour la récupération des données d'enseignants
+   - Vérification des méthodes de requêtes et gestion des erreurs
+
+#### Avantages des tests d'intégration
+
+La proportion significative de tests d'intégration (38% des tests) apporte plusieurs bénéfices au projet :
+
+1. **Confiance accrue** : Les tests d'intégration vérifient que les différents composants du système fonctionnent correctement ensemble, ce qui augmente la fiabilité de l'application.
+
+2. **Détection des problèmes d'interfaces** : Contrairement aux tests unitaires qui testent les composants en isolation, les tests d'intégration permettent de détecter les problèmes qui surviennent lorsque différentes parties du système interagissent.
+
+3. **Test des flux de données** : Les tests d'intégration vérifient les flux de données complets, de l'interface utilisateur jusqu'aux requêtes HTTP, en validant que :
+   - Les requêtes HTTP sont correctement formatées
+   - Les réponses HTTP sont correctement traitées
+   - Les données sont correctement affichées dans l'interface
+
+4. **Couverture des cas réels d'utilisation** : Ces tests simulent des scénarios plus proches de l'utilisation réelle de l'application, comme l'inscription d'un utilisateur suivie de sa connexion.
+
+Les tests d'intégration implémentés sont particulièrement pertinents pour les fonctionnalités critiques de l'application, telles que l'authentification (login/register) et la gestion des sessions de yoga, garantissant ainsi la stabilité des fonctionnalités essentielles.
+
+### Liste exhaustive des tests unitaires et d'intégration
 
 #### Composants
 
@@ -228,9 +271,19 @@ npm run e2e
 
 ## Rapports de couverture
 
-### Couverture des tests unitaires
+### Répartition des types de tests
 
-Pour générer le rapport de couverture des tests unitaires :
+La stratégie de test de l'application frontend est basée sur une approche pyramidale avec:
+
+- **Tests unitaires**: 8 fichiers (environ 62%)
+- **Tests d'intégration**: 5 fichiers (environ 38%)
+- **Tests End-to-End (E2E)**: 6 fichiers (ceux-ci constituent une couche supplémentaire de tests)
+
+Cette répartition dépasse largement l'objectif minimum de 30% de tests d'intégration requis pour le projet.
+
+### Couverture des tests unitaires et d'intégration
+
+Pour générer le rapport de couverture des tests unitaires et d'intégration (Jest) :
 
 ```bash
 npm run test
